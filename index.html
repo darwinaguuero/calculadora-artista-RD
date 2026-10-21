@@ -5,19 +5,87 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calculadora Presupuestaria | Caleta</title>
 <style>
-  :root { --bg:#0b1020; --panel:#131b2e; --panel2:#19243a; --text:#f4f7fb; --muted:#9eabc1; --accent:#a3ff5f; --accent2:#d5ffb8; --line:#2b3850; --danger:#ff7777; }
-  * { box-sizing:border-box; }
-  body { margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:radial-gradient(circle at 80% 0%,#243457 0,transparent 32%),var(--bg); color:var(--text); }
+  /* Tema Claro por Defecto (Blanco, Grises refinados para tarjetas/estructura y Acento Azul) */
+  :root {
+    --bg-gradient: radial-gradient(circle at 80% 0%, #cbd5e1 0, transparent 35%), #f8fafc;
+    --bg: #f8fafc;
+    --panel: #ffffff;
+    --panel2: #f1f5f9;
+    --text: #0f172a;
+    --muted: #64748b;
+    --accent: #2563eb;
+    --accent-btn-text: #ffffff;
+    --accent2: #16a34a;
+    --line: #e2e8f0;
+    --danger: #dc2626;
+    --input-bg: #ffffff;
+    --input-border: #cbd5e1;
+    --msg-bg: #f0fdf4;
+    --msg-border: #bbf7d0;
+    --msg-over-bg: #fef2f2;
+    --msg-over-border: #fecaca;
+    --track-bg: #e2e8f0;
+    --btn-sec: #f1f5f9;
+    --btn-sec-border: #cbd5e1;
+    --shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+  }
+
+  /* Modo Nocturno (Paleta Oscura Original Azul/Azul Marino/Verde Neón) */
+  body.dark-mode {
+    --bg-gradient: radial-gradient(circle at 80% 0%, #243457 0, transparent 32%), #0b1020;
+    --bg: #0b1020;
+    --panel: #131b2e;
+    --panel2: #19243a;
+    --text: #f4f7fb;
+    --muted: #9eabc1;
+    --accent: #a3ff5f;
+    --accent-btn-text: #10170c;
+    --accent2: #d5ffb8;
+    --line: #2b3850;
+    --danger: #ff7777;
+    --input-bg: #0d1526;
+    --input-border: #35445e;
+    --msg-bg: #14251d;
+    --msg-border: #31563c;
+    --msg-over-bg: #2b171d;
+    --msg-over-border: #713541;
+    --track-bg: #0a1120;
+    --btn-sec: #202c42;
+    --btn-sec-border: #3a4963;
+    --shadow: 0 4px 20px rgba(0,0,0,0.25);
+  }
+
+  * { box-sizing:border-box; transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; }
+  body { margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg-gradient); color:var(--text); min-height:100vh; }
   .wrap { width:min(1120px,92%); margin:0 auto; padding:34px 0 48px; }
-  header { display:flex; gap:20px; justify-content:space-between; align-items:flex-start; margin-bottom:26px; }
+  header { display:flex; gap:20px; justify-content:space-between; align-items:flex-start; margin-bottom:26px; flex-wrap:wrap; }
+  .header-controls { display:flex; align-items:center; gap:10px; }
   .eyebrow { color:var(--accent); font-size:.78rem; font-weight:800; letter-spacing:.16em; text-transform:uppercase; }
   h1 { font-size:clamp(2rem,5vw,3.5rem); line-height:1.02; margin:10px 0 12px; letter-spacing:-.045em; }
   .intro { color:var(--muted); max-width:660px; line-height:1.6; margin:0; }
-  .pill { border:1px solid #42516b; border-radius:999px; padding:9px 13px; color:var(--accent2); font-size:.8rem; white-space:nowrap; }
+  .pill { border:1px solid var(--line); border-radius:999px; padding:9px 13px; color:var(--accent2); font-size:.8rem; white-space:nowrap; background:var(--panel2); font-weight:600; }
+  
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: .85rem;
+    font-weight: 600;
+    box-shadow: var(--shadow);
+  }
+  .theme-toggle:hover { filter: brightness(0.96); }
+  body.dark-mode .theme-toggle:hover { filter: brightness(1.15); }
+
   .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:13px; margin:24px 0; }
-  .stat,.panel { background:linear-gradient(145deg,rgba(25,36,58,.96),rgba(16,24,41,.96)); border:1px solid var(--line); border-radius:18px; }
+  .stat,.panel { background:var(--panel); border:1px solid var(--line); border-radius:18px; box-shadow: var(--shadow); }
   .stat { padding:18px; min-width:0; }
-  .stat span { color:var(--muted); font-size:.82rem; display:block; margin-bottom:12px; }
+  .stat span { color:var(--muted); font-size:.82rem; display:block; margin-bottom:12px; font-weight:500; }
   .stat strong { display:block; font-size:clamp(1.15rem,2.5vw,1.7rem); letter-spacing:-.03em; overflow-wrap:anywhere; }
   .stat small { color:var(--muted); display:block; margin-top:8px; }
   .layout { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(270px,.8fr); gap:18px; align-items:start; }
@@ -26,9 +94,10 @@
   h2 { margin:0; font-size:1.1rem; }
   .sub { color:var(--muted); font-size:.85rem; margin:6px 0 0; line-height:1.5; }
   .budget-field { display:grid; grid-template-columns:1fr minmax(140px,220px); align-items:center; gap:12px; margin:16px 0 22px; }
-  label { color:#dbe3f0; font-size:.9rem; }
-  input[type="number"], input[type="text"] { width:100%; background:#0d1526; border:1px solid #35445e; color:var(--text); border-radius:10px; padding:11px 12px; font:inherit; outline:none; }
-  input:focus { border-color:var(--accent); box-shadow:0 0 0 3px #a3ff5f1c; }
+  label { color:var(--text); font-size:.9rem; font-weight:500; }
+  input[type="number"], input[type="text"] { width:100%; background:var(--input-bg); border:1px solid var(--input-border); color:var(--text); border-radius:10px; padding:11px 12px; font:inherit; outline:none; }
+  input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,0.15); }
+  body.dark-mode input:focus { box-shadow:0 0 0 3px rgba(163,255,95,0.2); }
   .section { border-top:1px solid var(--line); padding-top:18px; margin-top:18px; }
   .section-title { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; }
   .section-title h3 { margin:0; font-size:.96rem; }
@@ -37,25 +106,25 @@
   .expense-row label { line-height:1.35; }
   .expense-row .hint { display:block; color:var(--muted); font-size:.75rem; margin-top:4px; }
   .right { position:sticky; top:18px; }
-  .progress-top { display:flex; justify-content:space-between; gap:10px; margin:22px 0 9px; font-size:.84rem; }
-  .track { height:10px; background:#0a1120; border-radius:99px; overflow:hidden; border:1px solid #29354a; }
+  .progress-top { display:flex; justify-content:space-between; gap:10px; margin:22px 0 9px; font-size:.84rem; font-weight:500; }
+  .track { height:10px; background:var(--track-bg); border-radius:99px; overflow:hidden; border:1px solid var(--line); }
   .bar { height:100%; width:0%; background:var(--accent); border-radius:99px; transition:width .2s ease; }
   .breakdown { margin:20px 0 0; }
-  .break-row { display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid #27334a; font-size:.88rem; }
+  .break-row { display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); font-size:.88rem; }
   .break-row span:first-child { color:var(--muted); }
   .break-row strong { text-align:right; }
-  .message { margin-top:16px; padding:13px 14px; background:#14251d; color:var(--accent2); border:1px solid #31563c; border-radius:12px; font-size:.86rem; line-height:1.5; }
-  .message.over { background:#2b171d; border-color:#713541; color:#ffb9bf; }
+  .message { margin-top:16px; padding:13px 14px; background:var(--msg-bg); color:var(--accent2); border:1px solid var(--msg-border); border-radius:12px; font-size:.86rem; line-height:1.5; font-weight:500; }
+  .message.over { background:var(--msg-over-bg); border-color:var(--msg-over-border); color:var(--danger); }
   .actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:18px; }
   button { border:0; border-radius:11px; padding:11px 15px; font:inherit; font-weight:750; cursor:pointer; }
-  .primary { background:var(--accent); color:#10170c; }
-  .secondary { background:#202c42; color:var(--text); border:1px solid #3a4963; }
+  .primary { background:var(--accent); color:var(--accent-btn-text); }
+  .secondary { background:var(--btn-sec); color:var(--text); border:1px solid var(--btn-sec-border); }
   button:hover { filter:brightness(1.08); }
   .note { margin-top:17px; color:var(--muted); font-size:.78rem; line-height:1.55; }
-  .footer { margin-top:24px; color:#71809b; font-size:.78rem; text-align:center; }
+  .footer { margin-top:24px; color:var(--muted); font-size:.78rem; text-align:center; }
   @media(max-width:850px) { .stats { grid-template-columns:repeat(2,1fr); } .layout { grid-template-columns:1fr; } .right { position:static; } header { flex-direction:column; } }
   @media(max-width:480px) { .wrap { width:94%; padding-top:22px; } .panel { padding:16px; } .budget-field { grid-template-columns:1fr; } .expense-row { grid-template-columns:minmax(0,1fr) 125px; gap:8px; } .stat { padding:14px; } }
-  @media print { body { background:white; color:#111; } .wrap { width:100%; padding:0; } .stat,.panel { background:white; border:1px solid #aaa; color:#111; break-inside:avoid; } .intro,.sub,.stat span,.stat small,.expense-row .hint,.note,.footer,.break-row span:first-child { color:#444; } input { color:#111!important; background:white!important; border:1px solid #aaa!important; } .actions,.pill { display:none; } .right { position:static; } }
+  @media print { body { background:white!important; color:#111!important; } .wrap { width:100%; padding:0; } .stat,.panel { background:white!important; border:1px solid #aaa!important; color:#111!important; break-inside:avoid; } .intro,.sub,.stat span,.stat small,.expense-row .hint,.note,.footer,.break-row span:first-child { color:#444!important; } input { color:#111!important; background:white!important; border:1px solid #aaa!important; } .actions,.pill,.theme-toggle { display:none!important; } .right { position:static; } }
 </style>
 </head>
 <body>
@@ -66,7 +135,13 @@
       <h1>Tu música.<br>Tu presupuesto.</h1>
       <p class="intro">Planifica el lanzamiento de tu próximo tema con números claros. Ajusta los costos a tus cotizaciones reales y descubre cuánto necesitas antes de invertir.</p>
     </div>
-    <div class="pill">RD$ · Peso dominicano</div>
+    <div class="header-controls">
+      <button class="theme-toggle" id="themeBtn" aria-label="Cambiar tema">
+        <span id="themeIcon">🌙</span>
+        <span id="themeText">Modo Nocturno</span>
+      </button>
+      <div class="pill">RD$ · Peso dominicano</div>
+    </div>
   </header>
 
   <section class="stats" aria-live="polite">
@@ -142,6 +217,35 @@
   const money = value => new Intl.NumberFormat('es-DO', {
     style: 'currency', currency: 'DOP', maximumFractionDigits: 0
   }).format(value);
+
+  // Toggle Tema Claro / Nocturno
+  const themeBtn = $('themeBtn');
+  const themeIcon = $('themeIcon');
+  const themeText = $('themeText');
+
+  function updateThemeUI(isDark) {
+    if (isDark) {
+      document.body.classList.add('dark-mode');
+      themeIcon.textContent = '☀️';
+      themeText.textContent = 'Modo Claro';
+    } else {
+      document.body.classList.remove('dark-mode');
+      themeIcon.textContent = '🌙';
+      themeText.textContent = 'Modo Nocturno';
+    }
+  }
+
+  // Tema Claro es el valor por defecto. Verificar si hay un guardado previo.
+  const savedTheme = localStorage.getItem('caleta_theme');
+  const isDarkInitial = savedTheme === 'dark';
+  updateThemeUI(isDarkInitial);
+
+  themeBtn.addEventListener('click', () => {
+    const isDarkNow = document.body.classList.toggle('dark-mode');
+    updateThemeUI(isDarkNow);
+    localStorage.setItem('caleta_theme', isDarkNow ? 'dark' : 'light');
+  });
+
   const groups = {
     music: ['beat','record','mix','musicians'],
     video: ['video','location','styling','transport','cover'],
