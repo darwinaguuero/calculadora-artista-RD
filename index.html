@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora Presupuestaria | Caleta</title>
+<style>
+  :root { --bg:#0b1020; --panel:#131b2e; --panel2:#19243a; --text:#f4f7fb; --muted:#9eabc1; --accent:#a3ff5f; --accent2:#d5ffb8; --line:#2b3850; --danger:#ff7777; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:radial-gradient(circle at 80% 0%,#243457 0,transparent 32%),var(--bg); color:var(--text); }
+  .wrap { width:min(1120px,92%); margin:0 auto; padding:34px 0 48px; }
+  header { display:flex; gap:20px; justify-content:space-between; align-items:flex-start; margin-bottom:26px; }
+  .eyebrow { color:var(--accent); font-size:.78rem; font-weight:800; letter-spacing:.16em; text-transform:uppercase; }
+  h1 { font-size:clamp(2rem,5vw,3.5rem); line-height:1.02; margin:10px 0 12px; letter-spacing:-.045em; }
+  .intro { color:var(--muted); max-width:660px; line-height:1.6; margin:0; }
+  .pill { border:1px solid #42516b; border-radius:999px; padding:9px 13px; color:var(--accent2); font-size:.8rem; white-space:nowrap; }
+  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:13px; margin:24px 0; }
+  .stat,.panel { background:linear-gradient(145deg,rgba(25,36,58,.96),rgba(16,24,41,.96)); border:1px solid var(--line); border-radius:18px; }
+  .stat { padding:18px; min-width:0; }
+  .stat span { color:var(--muted); font-size:.82rem; display:block; margin-bottom:12px; }
+  .stat strong { display:block; font-size:clamp(1.15rem,2.5vw,1.7rem); letter-spacing:-.03em; overflow-wrap:anywhere; }
+  .stat small { color:var(--muted); display:block; margin-top:8px; }
+  .layout { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(270px,.8fr); gap:18px; align-items:start; }
+  .panel { padding:22px; }
+  .panel-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; }
+  h2 { margin:0; font-size:1.1rem; }
+  .sub { color:var(--muted); font-size:.85rem; margin:6px 0 0; line-height:1.5; }
+  .budget-field { display:grid; grid-template-columns:1fr minmax(140px,220px); align-items:center; gap:12px; margin:16px 0 22px; }
+  label { color:#dbe3f0; font-size:.9rem; }
+  input[type="number"], input[type="text"] { width:100%; background:#0d1526; border:1px solid #35445e; color:var(--text); border-radius:10px; padding:11px 12px; font:inherit; outline:none; }
+  input:focus { border-color:var(--accent); box-shadow:0 0 0 3px #a3ff5f1c; }
+  .section { border-top:1px solid var(--line); padding-top:18px; margin-top:18px; }
+  .section-title { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; }
+  .section-title h3 { margin:0; font-size:.96rem; }
+  .section-total { color:var(--accent2); font-size:.85rem; font-weight:700; }
+  .expense-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(125px,175px); gap:12px; align-items:center; padding:8px 0; }
+  .expense-row label { line-height:1.35; }
+  .expense-row .hint { display:block; color:var(--muted); font-size:.75rem; margin-top:4px; }
+  .right { position:sticky; top:18px; }
+  .progress-top { display:flex; justify-content:space-between; gap:10px; margin:22px 0 9px; font-size:.84rem; }
+  .track { height:10px; background:#0a1120; border-radius:99px; overflow:hidden; border:1px solid #29354a; }
+  .bar { height:100%; width:0%; background:var(--accent); border-radius:99px; transition:width .2s ease; }
+  .breakdown { margin:20px 0 0; }
+  .break-row { display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid #27334a; font-size:.88rem; }
+  .break-row span:first-child { color:var(--muted); }
+  .break-row strong { text-align:right; }
+  .message { margin-top:16px; padding:13px 14px; background:#14251d; color:var(--accent2); border:1px solid #31563c; border-radius:12px; font-size:.86rem; line-height:1.5; }
+  .message.over { background:#2b171d; border-color:#713541; color:#ffb9bf; }
+  .actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:18px; }
+  button { border:0; border-radius:11px; padding:11px 15px; font:inherit; font-weight:750; cursor:pointer; }
+  .primary { background:var(--accent); color:#10170c; }
+  .secondary { background:#202c42; color:var(--text); border:1px solid #3a4963; }
+  button:hover { filter:brightness(1.08); }
+  .note { margin-top:17px; color:var(--muted); font-size:.78rem; line-height:1.55; }
+  .footer { margin-top:24px; color:#71809b; font-size:.78rem; text-align:center; }
+  @media(max-width:850px) { .stats { grid-template-columns:repeat(2,1fr); } .layout { grid-template-columns:1fr; } .right { position:static; } header { flex-direction:column; } }
+  @media(max-width:480px) { .wrap { width:94%; padding-top:22px; } .panel { padding:16px; } .budget-field { grid-template-columns:1fr; } .expense-row { grid-template-columns:minmax(0,1fr) 125px; gap:8px; } .stat { padding:14px; } }
+  @media print { body { background:white; color:#111; } .wrap { width:100%; padding:0; } .stat,.panel { background:white; border:1px solid #aaa; color:#111; break-inside:avoid; } .intro,.sub,.stat span,.stat small,.expense-row .hint,.note,.footer,.break-row span:first-child { color:#444; } input { color:#111!important; background:white!important; border:1px solid #aaa!important; } .actions,.pill { display:none; } .right { position:static; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Caleta · RD</div>
+      <h1>Tu música.<br>Tu presupuesto.</h1>
+      <p class="intro">Planifica el lanzamiento de tu próximo tema con números claros. Ajusta los costos a tus cotizaciones reales y descubre cuánto necesitas antes de invertir.</p>
+    </div>
+    <div class="pill">RD$ · Peso dominicano</div>
+  </header>
+
+  <section class="stats" aria-live="polite">
+    <div class="stat"><span>Presupuesto disponible</span><strong id="statBudget">RD$ 0</strong><small>Tu límite de inversión</small></div>
+    <div class="stat"><span>Gasto estimado</span><strong id="statSpend">RD$ 0</strong><small>Según los costos ingresados</small></div>
+    <div class="stat"><span>Saldo restante</span><strong id="statBalance">RD$ 0</strong><small id="balanceHint">Disponible para imprevistos</small></div>
+    <div class="stat"><span>Uso del presupuesto</span><strong id="statPercent">0%</strong><small>Porcentaje comprometido</small></div>
+  </section>
+
+  <div class="layout">
+    <main class="panel">
+      <div class="panel-head">
+        <div><h2>Arma tu presupuesto</h2><p class="sub">Los importes son editables. Empieza por tu límite real.</p></div>
+      </div>
+      <div class="budget-field">
+        <label for="budget">¿Cuánto dinero tienes disponible?</label>
+        <input id="budget" type="number" min="0" step="500" value="30000">
+      </div>
+
+      <section class="section">
+        <div class="section-title"><h3>🎙️ Producción musical</h3><span class="section-total" id="totalMusic">RD$ 0</span></div>
+        <div class="expense-row"><label for="beat">Beat / instrumental <span class="hint">Compra, licencia o productor</span></label><input id="beat" class="cost" type="number" min="0" step="100" value="3000"></div>
+        <div class="expense-row"><label for="record">Estudio / grabación <span class="hint">Horas de estudio y voz</span></label><input id="record" class="cost" type="number" min="0" step="100" value="2500"></div>
+        <div class="expense-row"><label for="mix">Mezcla y masterización</label><input id="mix" class="cost" type="number" min="0" step="100" value="2500"></div>
+        <div class="expense-row"><label for="musicians">Músicos / arreglos adicionales</label><input id="musicians" class="cost" type="number" min="0" step="100" value="0"></div>
+      </section>
+
+      <section class="section">
+        <div class="section-title"><h3>🎬 Visuales y contenido</h3><span class="section-total" id="totalVideo">RD$ 0</span></div>
+        <div class="expense-row"><label for="video">Videoclip / videógrafo</label><input id="video" class="cost" type="number" min="0" step="500" value="7000"></div>
+        <div class="expense-row"><label for="location">Locación, permisos o alquiler</label><input id="location" class="cost" type="number" min="0" step="100" value="1000"></div>
+        <div class="expense-row"><label for="styling">Vestuario, maquillaje y utilería</label><input id="styling" class="cost" type="number" min="0" step="100" value="1500"></div>
+        <div class="expense-row"><label for="transport">Transporte y comida del equipo</label><input id="transport" class="cost" type="number" min="0" step="100" value="1000"></div>
+        <div class="expense-row"><label for="cover">Portada, fotos y piezas gráficas</label><input id="cover" class="cost" type="number" min="0" step="100" value="800"></div>
+      </section>
+
+      <section class="section">
+        <div class="section-title"><h3>📣 Promoción y lanzamiento</h3><span class="section-total" id="totalPromo">RD$ 0</span></div>
+        <div class="expense-row"><label for="ads">Publicidad digital <span class="hint">Instagram, TikTok, YouTube, etc.</span></label><input id="ads" class="cost" type="number" min="0" step="100" value="2000"></div>
+        <div class="expense-row"><label for="influencer">Influencers / páginas musicales</label><input id="influencer" class="cost" type="number" min="0" step="100" value="1000"></div>
+        <div class="expense-row"><label for="distribution">Distribución digital</label><input id="distribution" class="cost" type="number" min="0" step="100" value="500"></div>
+        <div class="expense-row"><label for="other">Otros gastos / imprevistos</label><input id="other" class="cost" type="number" min="0" step="100" value="1000"></div>
+      </section>
+      <div class="actions">
+        <button class="primary" id="reset">Restablecer ejemplo</button>
+        <button class="secondary" id="print">Imprimir / guardar PDF</button>
+      </div>
+      <p class="note">Consejo: confirma por escrito qué incluye cada servicio, si el beat permite uso comercial y si existen costos extra de licencia, distribución, transporte o revisiones.</p>
+    </main>
+
+    <aside class="panel right">
+      <h2>Resumen del proyecto</h2>
+      <p class="sub">La estimación se actualiza mientras editas los valores.</p>
+      <div class="progress-top"><span>Presupuesto utilizado</span><strong id="progressLabel">0%</strong></div>
+      <div class="track"><div class="bar" id="bar"></div></div>
+      <div class="breakdown">
+        <div class="break-row"><span>Producción musical</span><strong id="sumMusic">RD$ 0</strong></div>
+        <div class="break-row"><span>Visuales y contenido</span><strong id="sumVideo">RD$ 0</strong></div>
+        <div class="break-row"><span>Promoción y lanzamiento</span><strong id="sumPromo">RD$ 0</strong></div>
+        <div class="break-row"><span>Inversión total</span><strong id="sumTotal">RD$ 0</strong></div>
+        <div class="break-row"><span>Reserva sugerida (10%)</span><strong id="reserve">RD$ 0</strong></div>
+        <div class="break-row"><span>Total con reserva</span><strong id="withReserve">RD$ 0</strong></div>
+      </div>
+      <div class="message" id="message" role="status">Tu presupuesto está dentro del límite.</div>
+      <p class="note">La reserva del 10% es una sugerencia para imprevistos, no un gasto ya realizado. Esta herramienta no predice reproducciones ni garantiza ingresos musicales.</p>
+    </aside>
+  </div>
+  <div class="footer">Calculadora independiente · Los datos permanecen en esta página mientras esté abierta.</div>
+</div>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const money = value => new Intl.NumberFormat('es-DO', {
+    style: 'currency', currency: 'DOP', maximumFractionDigits: 0
+  }).format(value);
+  const groups = {
+    music: ['beat','record','mix','musicians'],
+    video: ['video','location','styling','transport','cover'],
+    promo: ['ads','influencer','distribution','other']
+  };
+  const allCosts = Object.values(groups).flat();
+  const number = id => Math.max(0, Number($(id).value) || 0);
+  const sum = ids => ids.reduce((total, id) => total + number(id), 0);
+
+  function update() {
+    const budget = number('budget');
+    const music = sum(groups.music);
+    const video = sum(groups.video);
+    const promo = sum(groups.promo);
+    const total = music + video + promo;
+    const balance = budget - total;
+    const percent = budget > 0 ? total / budget * 100 : (total > 0 ? 100 : 0);
+    const reserve = total * 0.10;
+    const needed = total + reserve;
+
+    $('statBudget').textContent = money(budget);
+    $('statSpend').textContent = money(total);
+    $('statBalance').textContent = money(balance);
+    $('statPercent').textContent = Math.round(percent) + '%';
+    $('balanceHint').textContent = balance < 0 ? 'Te faltan ' + money(Math.abs(balance)) : 'Disponible para imprevistos';
+    $('totalMusic').textContent = money(music);
+    $('totalVideo').textContent = money(video);
+    $('totalPromo').textContent = money(promo);
+    $('sumMusic').textContent = money(music);
+    $('sumVideo').textContent = money(video);
+    $('sumPromo').textContent = money(promo);
+    $('sumTotal').textContent = money(total);
+    $('reserve').textContent = money(reserve);
+    $('withReserve').textContent = money(needed);
+    $('progressLabel').textContent = Math.round(percent) + '%';
+    $('bar').style.width = Math.min(100, percent) + '%';
+
+    const message = $('message');
+    if (total > budget) {
+      message.className = 'message over';
+      message.textContent = 'Presupuesto excedido: reduce gastos o consigue ' + money(total - budget) + ' adicionales. Con la reserva sugerida, necesitarías ' + money(needed - budget) + ' más.';
+    } else if (needed > budget) {
+      message.className = 'message';
+      message.textContent = 'Cabe en tu límite, pero no queda suficiente para la reserva sugerida de 10%. Considera recortar ' + money(needed - budget) + ' o aumentar el presupuesto.';
+    } else {
+      message.className = 'message';
+      message.textContent = 'Tu presupuesto está dentro del límite y contempla una reserva del 10%. Saldo tras gastos y reserva: ' + money(budget - needed) + '.';
+    }
+    $('bar').style.background = percent > 100 ? 'var(--danger)' : 'var(--accent)';
+  }
+
+  [...allCosts, 'budget'].forEach(id => $(id).addEventListener('input', update));
+  $('reset').addEventListener('click', () => {
+    $('budget').value = 30000;
+    const defaults = {beat:3000,record:2500,mix:2500,musicians:0,video:7000,location:1000,styling:1500,transport:1000,cover:800,ads:2000,influencer:1000,distribution:500,other:1000};
+    Object.entries(defaults).forEach(([id,value]) => $(id).value = value);
+    update();
+  });
+  $('print').addEventListener('click', () => window.print());
+  update();
+})();
+</script>
+</body>
+</html>
